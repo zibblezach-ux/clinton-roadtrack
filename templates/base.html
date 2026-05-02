@@ -51,17 +51,32 @@
     h2, h3 {
       margin-top: 20px;
     }
+
+    .admin-banner {
+      background: #ffeb3b;
+      color: #000;
+      text-align: center;
+      padding: 6px;
+      font-weight: bold;
+      font-size: 13px;
+    }
   </style>
 </head>
 
 <body>
 
+{% if request.args.get('key') %}
+<div class="admin-banner">
+  ADMIN MODE ACTIVE
+</div>
+{% endif %}
+
 <header>
   <h1>Clinton RoadTrack</h1>
   <nav>
     <a href="/">Dashboard</a>
-    <a href="/roads">Roads</a>
-    <a href="/work-orders">Work Orders</a>
+    <a href="/roads{% if request.args.get('key') %}?key={{ request.args.get('key') }}{% endif %}">Roads</a>
+    <a href="/work-orders{% if request.args.get('key') %}?key={{ request.args.get('key') }}{% endif %}">Work Orders</a>
     <a href="/public">Public View</a>
   </nav>
 </header>

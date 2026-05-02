@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="toolbar">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
   <h2>Road Segments</h2>
-  <a class="btn secondary" href="{{ url_for('export_csv', kind='roads') }}">Export CSV</a>
-</div>
 
-<form class="search">
-  <input name="q" value="{{ q }}" placeholder="Search roads">
-  <button>Search</button>
-</form>
+  {% if is_admin %}
+  <a class="btn" href="{{ url_for('road_new') }}?key={{ request.args.get('key') }}">
+    Add Road Segment
+  </a>
+  {% endif %}
+</div>
 
 <table>
 <tr>
@@ -32,7 +32,14 @@
   <td>{{ r.traffic_level }}</td>
   <td>{{ r.condition }}</td>
   <td><b>{{ score_road(r) }}</b></td>
-  <td></td>
+
+  <td>
+    {% if is_admin %}
+    <a href="{{ url_for('road_edit', road_id=r.id) }}?key={{ request.args.get('key') }}">
+      Edit
+    </a>
+    {% endif %}
+  </td>
 </tr>
 {% endfor %}
 
