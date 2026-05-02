@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, Response
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
 from functools import wraps
 import csv
 from io import StringIO, TextIOWrapper
@@ -13,6 +12,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
+# 🔒 ADMIN KEY
 ADMIN_KEY = "clinton-2026-secure"
 
 def require_admin(f):
@@ -23,6 +23,7 @@ def require_admin(f):
         return f(*args, **kwargs)
     return decorated
 
+# Ensure tables exist (Render fix)
 @app.before_request
 def create_tables():
     db.create_all()
@@ -57,7 +58,7 @@ class CitizenIssue(db.Model):
     status = db.Column(db.String(30))
 
 # =========================
-# ROUTES
+# DASHBOARD (FIXED)
 # =========================
 
 @app.route("/")
@@ -65,7 +66,26 @@ def dashboard():
     roads = Road.query.all()
     work_orders = WorkOrder.query.all()
     issues = CitizenIssue.query.all()
-    return render_template("dashboard.html", roads=roads, work_orders=work_orders, issues=issues)
+
+    counts = {
+        "roads": len(roads),
+        "planned": len([w for w in work_orders if w.status == "Planned"]),
+        "completed": len([w for w in work_orders if w.status == "Completed"]),
+        "issues": len(issues),
+        "poor": len([r for r in roads if r.condition == "Poor"])
+    }
+
+    return render_template(
+        "dashboard.html",
+        counts=counts,
+        work_orders=work_orders,
+        issues=issues,
+        roads=roads
+    )
+
+# =========================
+# ROADS
+# =========================
 
 @app.route("/roads")
 def roads():
@@ -73,11 +93,19 @@ def roads():
     is_admin = request.args.get("key") == ADMIN_KEY
     return render_template("roads.html", roads=roads, is_admin=is_admin)
 
+# =========================
+# WORK ORDERS
+# =========================
+
 @app.route("/work-orders")
 def work_orders():
     work_orders = WorkOrder.query.all()
     is_admin = request.args.get("key") == ADMIN_KEY
     return render_template("work_orders.html", work_orders=work_orders, is_admin=is_admin)
+
+# =========================
+# PUBLIC
+# =========================
 
 @app.route("/public")
 def public():
@@ -110,7 +138,7 @@ def export_all():
     return Response(output.getvalue(), mimetype="text/csv")
 
 # =========================
-# IMPORT (FIXED)
+# IMPORT
 # =========================
 
 @app.route("/import", methods=["POST"])
@@ -165,8 +193,8 @@ def import_data():
                     status=row[2]
                 ))
 
-        except Exception:
-            continue  # skip bad rows safely
+        except:
+            continue
 
     db.session.commit()
 
