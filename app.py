@@ -18,8 +18,7 @@ ADMIN_KEY = "clinton-2026-secure"
 def require_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        key = request.args.get("key")
-        if key != ADMIN_KEY:
+        if request.args.get("key") != ADMIN_KEY:
             return "Unauthorized", 403
         return f(*args, **kwargs)
     return decorated
@@ -63,7 +62,10 @@ class CitizenIssue(db.Model):
 
 @app.route("/")
 def dashboard():
-    return render_template("dashboard.html")
+    roads = Road.query.all()
+    work_orders = WorkOrder.query.all()
+    issues = CitizenIssue.query.all()
+    return render_template("dashboard.html", roads=roads, work_orders=work_orders, issues=issues)
 
 @app.route("/roads")
 def roads():
@@ -108,14 +110,17 @@ def export_all():
     return Response(output.getvalue(), mimetype="text/csv")
 
 # =========================
-# IMPORT
+# IMPORT (FIXED)
 # =========================
 
 @app.route("/import", methods=["POST"])
 @require_admin
 def import_data():
+    if "file" not in request.files:
+        return "No file uploaded", 400
+
     file = request.files["file"]
-    stream = TextIOWrapper(file.stream, encoding='utf-8')
+    stream = TextIOWrapper(file.stream, encoding="utf-8")
     reader = csv.reader(stream)
 
     mode = None
@@ -134,33 +139,34 @@ def import_data():
             mode = "issues"
             continue
 
-        if mode == "roads":
-            r = Road(
-                name=row[0],
-                segment_name=row[1],
-                condition=row[2],
-                traffic_level=row[3]
-            )
-            db.session.add(r)
+        try:
+            if mode == "roads" and len(row) >= 4:
+                db.session.add(Road(
+                    name=row[0],
+                    segment_name=row[1],
+                    condition=row[2],
+                    traffic_level=row[3]
+                ))
 
-        elif mode == "work":
-            road = Road.query.filter_by(name=row[1]).first()
-            w = WorkOrder(
-                title=row[0],
-                road=road,
-                status=row[2],
-                planned_date=row[3],
-                completed_date=row[4]
-            )
-            db.session.add(w)
+            elif mode == "work" and len(row) >= 5:
+                road = Road.query.filter_by(name=row[1]).first()
+                db.session.add(WorkOrder(
+                    title=row[0],
+                    road=road,
+                    status=row[2],
+                    planned_date=row[3],
+                    completed_date=row[4]
+                ))
 
-        elif mode == "issues":
-            i = CitizenIssue(
-                road_name=row[0],
-                description=row[1],
-                status=row[2]
-            )
-            db.session.add(i)
+            elif mode == "issues" and len(row) >= 3:
+                db.session.add(CitizenIssue(
+                    road_name=row[0],
+                    description=row[1],
+                    status=row[2]
+                ))
+
+        except Exception:
+            continue  # skip bad rows safely
 
     db.session.commit()
 
