@@ -36,10 +36,10 @@
   </select><br><br>
 
   <label>Planned Date</label><br>
-  <input type="text" name="planned_date" value="{{ wo.planned_date if wo else '' }}"><br><br>
+  <input type="date" name="planned_date" value="{{ wo.planned_date if wo else '' }}"><br><br>
 
   <label>Completed Date</label><br>
-  <input type="text" name="completed_date" value="{{ wo.completed_date if wo else '' }}"><br><br>
+  <input type="date" name="completed_date" value="{{ wo.completed_date if wo else '' }}"><br><br>
 
   <label>Estimated Cost</label><br>
   <input type="number" step="0.01" name="estimated_cost" value="{{ wo.estimated_cost if wo else '' }}"><br><br>
