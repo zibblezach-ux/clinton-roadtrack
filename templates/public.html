@@ -1,77 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>A Reasonable Standard: Road Transparency</h2>
+<h2>Public Road & Work Overview</h2>
 
-<div style="background:#fff3cd;padding:14px;border-radius:10px;margin-bottom:18px;border-left:5px solid #ffc107;">
-  <strong>What you're looking at:</strong><br>
-  This system demonstrates the basic components used by functional county road departments:
-  a full road inventory, documented maintenance activity, prioritization based on need, and public reporting.
-  <br><br>
-  <strong>Key question:</strong><br>
-  Does your county provide this level of transparency?
-</div>
-
-<h3>Planned / In Progress Work</h3>
-<table>
-<tr><th>Title</th><th>Road</th><th>Status</th><th>Planned</th></tr>
-{% for w in planned %}
+<h3>Roads</h3>
+<table border="1" cellpadding="6">
 <tr>
-  <td>{{ w.title }}</td>
-  <td>{{ w.road.name }}</td>
-  <td>{{ w.status }}</td>
-  <td>{{ w.planned_date }}</td>
+  <th>Road</th>
+  <th>Segment</th>
+  <th>Condition</th>
+  <th>Traffic</th>
 </tr>
-{% endfor %}
-</table>
 
-<h3 style="margin-top:20px;">Recently Completed</h3>
-<table>
-<tr><th>Title</th><th>Road</th><th>Completed</th></tr>
-{% for w in completed %}
-<tr>
-  <td>{{ w.title }}</td>
-  <td>{{ w.road.name }}</td>
-  <td>{{ w.completed_date }}</td>
-</tr>
-{% endfor %}
-</table>
-
-<div style="background:#eaf2fb;padding:14px;border-radius:10px;margin:20px 0;">
-  <strong>How priority is determined:</strong>
-  <ul>
-    <li>Road condition (Poor roads rank highest)</li>
-    <li>Traffic level (High-use roads rank higher)</li>
-    <li>Importance (School routes, emergency access, farm access)</li>
-  </ul>
-</div>
-
-<h3>Road Segment Inventory</h3>
-<table>
-<tr><th>Road</th><th>Segment</th><th>Condition</th><th>Traffic</th><th>Score</th></tr>
 {% for r in roads %}
 <tr>
   <td>{{ r.name }}</td>
   <td>{{ r.segment_name }}</td>
   <td>{{ r.condition }}</td>
   <td>{{ r.traffic_level }}</td>
-  <td><b>{{ score_road(r) }}</b></td>
 </tr>
 {% endfor %}
 </table>
 
-<div style="background:#fdecea;padding:14px;border-radius:10px;margin-top:20px;border-left:5px solid #d32f2f;">
-  <strong>What a complete system would also include:</strong>
-  <ul>
-    <li>Full maintenance history for every road segment</li>
-    <li>Scheduled maintenance timelines</li>
-    <li>Budget vs actual spending by road</li>
-    <li>Condition trends over time</li>
-  </ul>
-</div>
+<h3 style="margin-top:20px;">Work Orders</h3>
+<table border="1" cellpadding="6">
+<tr>
+  <th>Title</th>
+  <th>Road</th>
+  <th>Status</th>
+</tr>
 
-<div style="background:#f5f5f5;padding:12px;border-radius:10px;margin-top:20px;">
-  Public issue submission is disabled in this demonstration system.
-</div>
+{% for w in work_orders %}
+<tr>
+  <td>{{ w.title }}</td>
+  <td>{{ w.road.name if w.road else "" }}</td>
+  <td>{{ w.status }}</td>
+</tr>
+{% endfor %}
+</table>
 
 {% endblock %}
