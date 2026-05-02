@@ -27,13 +27,16 @@ def create_tables():
     db.create_all()
 
 # =========================
-# MODELS
+# MODELS (RESTORED)
 # =========================
 
 class Road(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(140))
     segment_name = db.Column(db.String(140))
+    surface_type = db.Column(db.String(60))
+    length_miles = db.Column(db.Float)
+    importance = db.Column(db.String(120))
     condition = db.Column(db.String(20))
     traffic_level = db.Column(db.String(20))
 
@@ -83,6 +86,9 @@ def road_new():
         db.session.add(Road(
             name=request.form["name"],
             segment_name=request.form["segment_name"],
+            surface_type=request.form["surface_type"],
+            length_miles=float(request.form.get("length_miles") or 0),
+            importance=request.form["importance"],
             condition=request.form["condition"],
             traffic_level=request.form["traffic_level"]
         ))
@@ -97,6 +103,9 @@ def road_edit(id):
     if request.method == "POST":
         r.name = request.form["name"]
         r.segment_name = request.form["segment_name"]
+        r.surface_type = request.form["surface_type"]
+        r.length_miles = float(request.form.get("length_miles") or 0)
+        r.importance = request.form["importance"]
         r.condition = request.form["condition"]
         r.traffic_level = request.form["traffic_level"]
         db.session.commit()
@@ -145,7 +154,7 @@ def work_order_edit(id):
     return render_template("work_order_form.html", wo=w, roads=Road.query.all())
 
 # =========================
-# EXPORT
+# EXPORT (UPDATED)
 # =========================
 
 @app.route("/export/all.csv")
@@ -156,17 +165,31 @@ def export_all():
 
     writer.writerow(["ROADS"])
     for r in Road.query.all():
-        writer.writerow([r.name, r.segment_name, r.condition, r.traffic_level])
+        writer.writerow([
+            r.name,
+            r.segment_name,
+            r.surface_type,
+            r.length_miles,
+            r.importance,
+            r.condition,
+            r.traffic_level
+        ])
 
     writer.writerow([])
     writer.writerow(["WORK_ORDERS"])
     for w in WorkOrder.query.all():
-        writer.writerow([w.title, w.road.name if w.road else "", w.status, w.planned_date, w.completed_date])
+        writer.writerow([
+            w.title,
+            w.road.name if w.road else "",
+            w.status,
+            w.planned_date,
+            w.completed_date
+        ])
 
     return Response(output.getvalue(), mimetype="text/csv")
 
 # =========================
-# IMPORT (OVERWRITES DATA)
+# IMPORT (UPDATED)
 # =========================
 
 @app.route("/import", methods=["POST"])
@@ -175,7 +198,6 @@ def import_data():
     file = request.files["file"]
     reader = csv.reader(TextIOWrapper(file.stream, encoding="utf-8"))
 
-    # 🔥 CLEAR EXISTING DATA
     WorkOrder.query.delete()
     Road.query.delete()
     db.session.commit()
@@ -193,12 +215,15 @@ def import_data():
             mode = "w"
             continue
 
-        if mode == "r" and len(row) >= 4:
+        if mode == "r" and len(row) >= 7:
             db.session.add(Road(
                 name=row[0],
                 segment_name=row[1],
-                condition=row[2],
-                traffic_level=row[3]
+                surface_type=row[2],
+                length_miles=float(row[3] or 0),
+                importance=row[4],
+                condition=row[5],
+                traffic_level=row[6]
             ))
 
         elif mode == "w" and len(row) >= 5:
