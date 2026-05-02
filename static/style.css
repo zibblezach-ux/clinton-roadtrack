@@ -1,0 +1,25 @@
+:root{--blue:#0b3d73;--light:#f4f8fb;--green:#2e7d32;--border:#d6e2ee}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;color:#123;background:#f7fafc}
+header{background:var(--blue);color:white;padding:22px 28px;display:flex;justify-content:space-between;gap:20px;align-items:flex-end;flex-wrap:wrap}
+header h1{margin:0;font-size:30px} header p{margin:6px 0 0;color:#dce9f7}
+nav a{color:white;text-decoration:none;margin:0 8px;font-weight:700}
+main{max-width:1180px;margin:24px auto;padding:0 16px}
+footer{text-align:center;padding:24px;color:#667}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.card,.panel{background:white;border-radius:14px;padding:18px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.card strong{display:block;font-size:34px;color:var(--blue)} .card span{color:#456}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;margin:18px 0}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.btn,button{display:inline-block;background:var(--blue);color:white;padding:10px 14px;border-radius:8px;text-decoration:none;border:0;font-weight:700;cursor:pointer}
+.btn.secondary{background:#516b83}
+table{width:100%;border-collapse:collapse;background:white;border-radius:14px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.06);margin:14px 0}
+th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;font-size:14px;vertical-align:top}
+th{background:#eaf2fb;color:#123}
+.form{background:white;border-radius:14px;padding:18px;box-shadow:0 3px 10px rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.form label{display:flex;flex-direction:column;font-weight:700;color:#234}
+input,select,textarea{margin-top:6px;padding:10px;border:1px solid #bdd0e1;border-radius:8px;font:inherit}
+textarea{min-height:90px}
+.flash{background:#e8f5e9;color:#1b5e20;padding:12px;border-radius:10px;margin-bottom:12px}
+.search{display:flex;gap:8px;margin:12px 0}.search input{flex:1}
+.hero{background:#eaf2fb;border-left:6px solid var(--blue);padding:18px;border-radius:14px;margin-bottom:18px}
