@@ -7,7 +7,10 @@ import os
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "change-this"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///roadtrack.db")
+
+# ✅ PERSISTENT DISK DATABASE (Render)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////var/data/roadtrack.db"
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -72,7 +75,7 @@ def dashboard():
         "poor": len([r for r in roads if r.condition == "Poor"])
     }
 
-    # Highest priority road (simple rule: Poor > Fair > Good)
+    # Highest priority road (Poor > Fair > Good)
     priority_map = {"Poor": 3, "Fair": 2, "Good": 1}
     highest_priority_road = None
     if roads:
@@ -82,7 +85,7 @@ def dashboard():
             reverse=True
         )[0]
 
-    # Recent work orders (last 5 entered)
+    # Recent work orders
     recent_work_orders = WorkOrder.query.order_by(WorkOrder.id.desc()).limit(5).all()
 
     return render_template(
