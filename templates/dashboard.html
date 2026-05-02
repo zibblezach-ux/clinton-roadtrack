@@ -1,78 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div style="background:#e8f5e9;padding:14px;border-radius:10px;margin-bottom:20px;border-left:5px solid #2e7d32;">
-  This system demonstrates what structured, accountable road management looks like when data is tracked and shared publicly.
-</div>
+<h2>Dashboard</h2>
 
-<!-- STATS -->
-<div style="display:flex;gap:15px;flex-wrap:wrap;margin-bottom:20px;">
+<h3>Summary</h3>
+<ul>
+  <li>Total Roads: {{ counts.roads }}</li>
+  <li>Planned Work Orders: {{ counts.planned }}</li>
+  <li>Completed Work Orders: {{ counts.completed }}</li>
+  <li>Poor Condition Roads: {{ counts.poor }}</li>
+</ul>
 
-  <div style="flex:1;background:#f1f6fb;padding:15px;border-radius:10px;">
-    <strong>{{ counts.roads }}</strong><br>
-    Road segments
-  </div>
+<h3>Highest Priority Road</h3>
+{% if highest_priority_road %}
+  <p>
+    {{ highest_priority_road.name }} —
+    {{ highest_priority_road.segment_name }}<br>
+    Condition: {{ highest_priority_road.condition }}<br>
+    Traffic: {{ highest_priority_road.traffic_level }}
+  </p>
+{% else %}
+  <p>No roads available</p>
+{% endif %}
 
-  <div style="flex:1;background:#f1f6fb;padding:15px;border-radius:10px;">
-    <strong>{{ counts.poor }}</strong><br>
-    Poor condition
-  </div>
-
-  <div style="flex:1;background:#f1f6fb;padding:15px;border-radius:10px;">
-    <strong>{{ counts.planned }}</strong><br>
-    Planned work orders
-  </div>
-
-  <div style="flex:1;background:#f1f6fb;padding:15px;border-radius:10px;">
-    <strong>{{ counts.completed }}</strong><br>
-    Completed work orders
-  </div>
-
-  <div style="flex:1;background:#f1f6fb;padding:15px;border-radius:10px;">
-    <strong>{{ counts.issues }}</strong><br>
-    Citizen issues
-  </div>
-
-</div>
-
-<!-- TOP PRIORITY -->
-<h2>Highest Priority Road Segments</h2>
-
-<table>
-<tr>
-  <th>Road</th>
-  <th>Condition</th>
-  <th>Traffic</th>
-  <th>Score</th>
-</tr>
-
-{% for road, score in scored %}
-<tr>
-  <td>{{ road.name }} — {{ road.segment_name }}</td>
-  <td>{{ road.condition }}</td>
-  <td>{{ road.traffic_level }}</td>
-  <td><b>{{ score }}</b></td>
-</tr>
-{% endfor %}
-</table>
-
-<!-- WORK ORDERS -->
-<h2 style="margin-top:25px;">Recent Work Orders</h2>
-
-<table>
-<tr>
-  <th>Title</th>
-  <th>Status</th>
-  <th>Road</th>
-</tr>
-
-{% for w in work_orders %}
-<tr>
-  <td>{{ w.title }}</td>
-  <td>{{ w.status }}</td>
-  <td>{{ w.road.name }}</td>
-</tr>
-{% endfor %}
-</table>
+<h3>Recent Work Orders</h3>
+{% if recent_work_orders %}
+  <table border="1" cellpadding="6">
+    <tr>
+      <th>Title</th>
+      <th>Road</th>
+      <th>Status</th>
+    </tr>
+    {% for w in recent_work_orders %}
+    <tr>
+      <td>{{ w.title }}</td>
+      <td>{{ w.road.name if w.road else "" }}</td>
+      <td>{{ w.status }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+{% else %}
+  <p>No work orders yet</p>
+{% endif %}
 
 {% endblock %}
