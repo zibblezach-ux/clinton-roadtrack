@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
+
+<div style="background:#e8f5e9;padding:14px;border-radius:10px;margin-bottom:18px;border-left:5px solid #2e7d32;">
+  This system demonstrates what structured, accountable road management looks like when data is tracked and shared publicly.
+</div>
+
 <section class="cards">
   <div class="card"><strong>{{ counts.roads }}</strong><span>Road segments</span></div>
   <div class="card"><strong>{{ counts.poor }}</strong><span>Poor condition</span></div>
@@ -14,18 +19,29 @@
     <table>
       <tr><th>Road</th><th>Condition</th><th>Traffic</th><th>Score</th></tr>
       {% for road, score in scored %}
-      <tr><td>{{ road.name }} — {{ road.segment_name }}</td><td>{{ road.condition }}</td><td>{{ road.traffic_level }}</td><td><b>{{ score }}</b></td></tr>
+      <tr>
+        <td>{{ road.name }} — {{ road.segment_name }}</td>
+        <td>{{ road.condition }}</td>
+        <td>{{ road.traffic_level }}</td>
+        <td><b>{{ score }}</b></td>
+      </tr>
       {% endfor %}
     </table>
   </div>
+
   <div class="panel">
     <h2>Recent Work Orders</h2>
     <table>
       <tr><th>Title</th><th>Status</th><th>Road</th></tr>
       {% for w in work_orders %}
-      <tr><td>{{ w.title }}</td><td>{{ w.status }}</td><td>{{ w.road.name }}</td></tr>
+      <tr>
+        <td>{{ w.title }}</td>
+        <td>{{ w.status }}</td>
+        <td>{{ w.road.name }}</td>
+      </tr>
       {% endfor %}
     </table>
   </div>
 </section>
+
 {% endblock %}

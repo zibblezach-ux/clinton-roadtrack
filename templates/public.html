@@ -1,43 +1,81 @@
 {% extends "base.html" %}
 {% block content %}
+
 <section class="hero">
-  <h2>Public Road Transparency Dashboard</h2>
-  <p>This page shows the road inventory, planned work, completed work, and issue intake in plain language.</p>
+  <h2>A Reasonable Standard: Road Transparency</h2>
+  <p>This page demonstrates what a functional road management system should look like.</p>
 </section>
+
+<div style="background:#fff3cd;padding:14px;border-radius:10px;margin-bottom:18px;border-left:5px solid #ffc107;">
+  <strong>What you're looking at:</strong><br>
+  This system demonstrates the basic components used by functional county road departments:
+  a full road inventory, documented maintenance activity, prioritization based on need, and public reporting.
+  <br><br>
+  <strong>Key question:</strong><br>
+  Does your county provide this level of transparency?
+</div>
 
 <section class="grid2">
   <div class="panel">
     <h2>Planned / In Progress</h2>
     <table>
       <tr><th>Work</th><th>Road</th><th>Status</th><th>Planned</th></tr>
-      {% for w in planned %}<tr><td>{{ w.title }}</td><td>{{ w.road.name }}</td><td>{{ w.status }}</td><td>{{ w.planned_date }}</td></tr>{% endfor %}
+      {% for w in planned %}
+      <tr><td>{{ w.title }}</td><td>{{ w.road.name }}</td><td>{{ w.status }}</td><td>{{ w.planned_date }}</td></tr>
+      {% endfor %}
     </table>
   </div>
+
   <div class="panel">
     <h2>Recently Completed</h2>
     <table>
       <tr><th>Work</th><th>Road</th><th>Completed</th></tr>
-      {% for w in completed %}<tr><td>{{ w.title }}</td><td>{{ w.road.name }}</td><td>{{ w.completed_date }}</td></tr>{% endfor %}
+      {% for w in completed %}
+      <tr><td>{{ w.title }}</td><td>{{ w.road.name }}</td><td>{{ w.completed_date }}</td></tr>
+      {% endfor %}
     </table>
   </div>
 </section>
+
+<div style="background:#eaf2fb;padding:14px;border-radius:10px;margin-bottom:18px;">
+  <strong>How priority is determined:</strong>
+  <ul>
+    <li>Road condition (Poor roads rank highest)</li>
+    <li>Traffic level (High-use roads rank higher)</li>
+    <li>Importance (School routes, emergency access, farm access)</li>
+  </ul>
+</div>
 
 <h2>Road Segment Inventory</h2>
 <table>
 <tr><th>Road</th><th>Segment</th><th>Condition</th><th>Traffic</th><th>Priority Score</th></tr>
 {% for r in roads %}
-<tr><td>{{ r.name }}</td><td>{{ r.segment_name }}</td><td>{{ r.condition }}</td><td>{{ r.traffic_level }}</td><td><b>{{ score_road(r) }}</b></td></tr>
+<tr>
+  <td>{{ r.name }}</td>
+  <td>{{ r.segment_name }}</td>
+  <td>{{ r.condition }}</td>
+  <td>{{ r.traffic_level }}</td>
+  <td><b>{{ score_road(r) }}</b></td>
+</tr>
 {% endfor %}
 </table>
+
+<div style="background:#fdecea;padding:14px;border-radius:10px;margin-top:20px;border-left:5px solid #d32f2f;">
+  <strong>What a complete system would also include:</strong>
+  <ul>
+    <li>Full maintenance history for every road segment</li>
+    <li>Scheduled maintenance timelines</li>
+    <li>Budget vs actual spending by road</li>
+    <li>Condition trends over time</li>
+  </ul>
+</div>
 
 <h2>Submit a Road Issue</h2>
 <form method="post" action="{{ url_for('issues') }}" class="form">
   <label>Road name <input name="road_name" required></label>
-  <label>Location detail <input name="location_detail" placeholder="nearest intersection, mailbox, bridge, etc."></label>
-  <label>Issue type <select name="issue_type"><option>Road condition</option><option>Drainage</option><option>Culvert</option><option>Bridge</option><option>Safety</option><option>Other</option></select></label>
+  <label>Location detail <input name="location_detail"></label>
   <label>Description <textarea name="description" required></textarea></label>
-  <label>Your name <input name="submitter_name"></label>
-  <label>Contact <input name="submitter_contact"></label>
   <button class="btn">Submit Issue</button>
 </form>
+
 {% endblock %}
