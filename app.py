@@ -5,6 +5,19 @@ import csv
 from io import StringIO
 import os
 
+from functools import wraps
+
+ADMIN_KEY = "changeme123"
+
+def require_admin(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        key = request.args.get("key")
+        if key != ADMIN_KEY:
+            return "Unauthorized", 403
+        return f(*args, **kwargs)
+    return decorated
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-before-public-use")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///roadtrack.db")
@@ -94,6 +107,7 @@ def roads():
     return render_template("roads.html", roads=roads, q=q, score_road=score_road)
 
 @app.route("/roads/new", methods=["GET", "POST"])
+@require_admin
 def road_new():
     if request.method == "POST":
         road = Road(
@@ -115,6 +129,7 @@ def road_new():
     return render_template("road_form.html", road=None)
 
 @app.route("/roads/<int:road_id>/edit", methods=["GET", "POST"])
+@require_admin
 def road_edit(road_id):
     road = Road.query.get_or_404(road_id)
     if request.method == "POST":
@@ -132,6 +147,7 @@ def work_orders():
     return render_template("work_orders.html", work_orders=work_orders)
 
 @app.route("/work-orders/new", methods=["GET", "POST"])
+@require_admin
 def work_order_new():
     roads = Road.query.order_by(Road.name).all()
     if not roads:
@@ -159,6 +175,7 @@ def work_order_new():
     return render_template("work_order_form.html", roads=roads, wo=None)
 
 @app.route("/work-orders/<int:wo_id>/edit", methods=["GET", "POST"])
+@require_admin
 def work_order_edit(wo_id):
     wo = WorkOrder.query.get_or_404(wo_id)
     roads = Road.query.order_by(Road.name).all()
@@ -174,6 +191,7 @@ def work_order_edit(wo_id):
     return render_template("work_order_form.html", roads=roads, wo=wo)
 
 @app.route("/issues", methods=["GET", "POST"])
+@require_admin
 def issues():
     if request.method == "POST":
         issue = CitizenIssue(
@@ -191,6 +209,7 @@ def issues():
     return render_template("issues.html", issues=issues)
 
 @app.route("/issues/<int:issue_id>/status", methods=["POST"])
+@require_admin
 def issue_status(issue_id):
     issue = CitizenIssue.query.get_or_404(issue_id)
     issue.status = request.form.get("status")
@@ -247,9 +266,7 @@ def seed():
         db.session.commit()
     print("Seed data loaded.")
 
-@app.before_request
-def create_tables():
-    db.create_all()
-
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
