@@ -1,14 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2>{% if road %}Edit{% else %}Add{% endif %} Road</h2>
+<h2>{% if road %}Edit{% else %}Add{% endif %} Road Segment</h2>
 
 <form method="post">
+
   <label>Road Name</label><br>
   <input type="text" name="name" value="{{ road.name if road else '' }}" required><br><br>
 
-  <label>Segment</label><br>
+  <label>Segment Name</label><br>
   <input type="text" name="segment_name" value="{{ road.segment_name if road else '' }}" required><br><br>
+
+  <label>Surface Type</label><br>
+  <input type="text" name="surface_type" value="{{ road.surface_type if road else '' }}"><br><br>
+
+  <label>Length (miles)</label><br>
+  <input type="number" step="0.01" name="length_miles" value="{{ road.length_miles if road else '' }}"><br><br>
+
+  <label>Importance</label><br>
+  <input type="text" name="importance" value="{{ road.importance if road else '' }}"><br><br>
 
   <label>Condition</label><br>
   <select name="condition">
@@ -25,6 +35,7 @@
   </select><br><br>
 
   <button type="submit">Save</button>
+
 </form>
 
 {% endblock %}
