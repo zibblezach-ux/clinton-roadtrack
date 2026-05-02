@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, Response
+from flask import Flask, render_template, request, redirect, url_for, Response
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from functools import wraps
@@ -13,7 +13,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-# 🔒 ADMIN PROTECTION
+# 🔒 ADMIN KEY
 ADMIN_KEY = "clinton-2026-secure"
 
 def require_admin(f):
@@ -25,12 +25,14 @@ def require_admin(f):
         return f(*args, **kwargs)
     return decorated
 
-# 🔧 FIX DATABASE INIT ON RENDER
+# 🔧 ENSURE DATABASE EXISTS (RENDER FIX)
 @app.before_request
 def create_tables():
     db.create_all()
 
-# 📊 MODELS
+# =========================
+# MODELS
+# =========================
 
 class Road(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,10 +64,13 @@ class CitizenIssue(db.Model):
     description = db.Column(db.Text)
     status = db.Column(db.String(30), default="Received")
 
-# 🎯 SIMPLE PRIORITY SCORE
+# =========================
+# PRIORITY SCORING
+# =========================
 
 def score_road(r):
     score = 0
+
     if r.condition == "Poor":
         score += 40
     elif r.condition == "Fair":
@@ -85,7 +90,9 @@ def score_road(r):
 
     return score
 
-# 🏠 DASHBOARD
+# =========================
+# DASHBOARD
+# =========================
 
 @app.route("/")
 def dashboard():
@@ -103,16 +110,22 @@ def dashboard():
 
     scored = sorted([(r, score_road(r)) for r in roads], key=lambda x: x[1], reverse=True)
 
-    return render_template("dashboard.html", counts=counts, work_orders=work_orders, issues=issues, scored=scored)
+    return render_template(
+        "dashboard.html",
+        counts=counts,
+        work_orders=work_orders,
+        issues=issues,
+        scored=scored
+    )
 
-# 🛣 ROADS (READ-ONLY PUBLIC)
+# =========================
+# ROADS
+# =========================
 
 @app.route("/roads")
 def roads():
     roads = Road.query.all()
     return render_template("roads.html", roads=roads, score_road=score_road)
-
-# 🔒 ADMIN ONLY
 
 @app.route("/roads/new", methods=["GET", "POST"])
 @require_admin
@@ -129,7 +142,7 @@ def road_new():
         )
         db.session.add(r)
         db.session.commit()
-        return redirect(url_for("roads"))
+        return redirect(url_for("roads") + f"?key={ADMIN_KEY}")
 
     return render_template("road_form.html")
 
@@ -148,11 +161,13 @@ def road_edit(road_id):
         r.condition = request.form.get("condition")
 
         db.session.commit()
-        return redirect(url_for("roads"))
+        return redirect(url_for("roads") + f"?key={ADMIN_KEY}")
 
     return render_template("road_form.html", road=r)
 
-# 📋 WORK ORDERS
+# =========================
+# WORK ORDERS
+# =========================
 
 @app.route("/work-orders")
 def work_orders():
@@ -178,7 +193,7 @@ def work_order_new():
         )
         db.session.add(w)
         db.session.commit()
-        return redirect(url_for("work_orders"))
+        return redirect(url_for("work_orders") + f"?key={ADMIN_KEY}")
 
     return render_template("work_order_form.html", roads=roads)
 
@@ -200,20 +215,31 @@ def work_order_edit(wo_id):
         w.actual_cost = float(request.form.get("actual_cost") or 0)
 
         db.session.commit()
-        return redirect(url_for("work_orders"))
+        return redirect(url_for("work_orders") + f"?key={ADMIN_KEY}")
 
     return render_template("work_order_form.html", roads=roads, wo=w)
 
-# 🌐 PUBLIC VIEW
+# =========================
+# PUBLIC VIEW
+# =========================
 
 @app.route("/public")
 def public():
     roads = Road.query.all()
     completed = WorkOrder.query.filter_by(status="Completed").all()
     planned = WorkOrder.query.filter(WorkOrder.status != "Completed").all()
-    return render_template("public.html", roads=roads, completed=completed, planned=planned, score_road=score_road)
 
-# 📤 EXPORT
+    return render_template(
+        "public.html",
+        roads=roads,
+        completed=completed,
+        planned=planned,
+        score_road=score_road
+    )
+
+# =========================
+# EXPORT
+# =========================
 
 @app.route("/export/<kind>.csv")
 def export_csv(kind):
@@ -223,6 +249,12 @@ def export_csv(kind):
     if kind == "roads":
         writer.writerow(["name", "segment", "condition", "traffic", "score"])
         for r in Road.query.all():
-            writer.writerow([r.name, r.segment_name, r.condition, r.traffic_level, score_road(r)])
+            writer.writerow([
+                r.name,
+                r.segment_name,
+                r.condition,
+                r.traffic_level,
+                score_road(r)
+            ])
 
     return Response(output.getvalue(), mimetype="text/csv")
