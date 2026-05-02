@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="toolbar"><h2>Citizen Issues</h2><a class="btn secondary" href="{{ url_for('export_csv', kind='issues') }}">Export CSV</a></div>
+<table>
+<tr><th>Road</th><th>Location</th><th>Type</th><th>Description</th><th>Status</th><th>Update</th></tr>
+{% for i in issues %}
+<tr>
+<td>{{ i.road_name }}</td><td>{{ i.location_detail }}</td><td>{{ i.issue_type }}</td><td>{{ i.description }}</td><td>{{ i.status }}</td>
+<td><form method="post" action="{{ url_for('issue_status', issue_id=i.id) }}"><select name="status"><option>Received</option><option>Reviewed</option><option>Assigned</option><option>Closed</option></select><button>Save</button></form></td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

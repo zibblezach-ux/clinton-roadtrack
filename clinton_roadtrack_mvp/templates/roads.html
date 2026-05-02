@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="toolbar">
+  <h2>Road Segments</h2>
+  <a class="btn" href="{{ url_for('road_new') }}">Add Road Segment</a>
+  <a class="btn secondary" href="{{ url_for('export_csv', kind='roads') }}">Export CSV</a>
+</div>
+<form class="search"><input name="q" value="{{ q }}" placeholder="Search roads"><button>Search</button></form>
+<table>
+<tr><th>Road</th><th>Segment</th><th>Surface</th><th>Miles</th><th>Traffic</th><th>Condition</th><th>Priority Score</th><th></th></tr>
+{% for r in roads %}
+<tr>
+<td>{{ r.name }}</td><td>{{ r.segment_name }}</td><td>{{ r.surface_type }}</td><td>{{ "%.2f"|format(r.length_miles or 0) }}</td><td>{{ r.traffic_level }}</td><td>{{ r.condition }}</td><td><b>{{ score_road(r) }}</b></td>
+<td><a href="{{ url_for('road_edit', road_id=r.id) }}">Edit</a></td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

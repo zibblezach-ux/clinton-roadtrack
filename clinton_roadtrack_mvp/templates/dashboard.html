@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="cards">
+  <div class="card"><strong>{{ counts.roads }}</strong><span>Road segments</span></div>
+  <div class="card"><strong>{{ counts.poor }}</strong><span>Poor condition</span></div>
+  <div class="card"><strong>{{ counts.planned }}</strong><span>Planned work orders</span></div>
+  <div class="card"><strong>{{ counts.completed }}</strong><span>Completed work orders</span></div>
+  <div class="card"><strong>{{ counts.issues }}</strong><span>Citizen issues</span></div>
+</section>
+
+<section class="grid2">
+  <div class="panel">
+    <h2>Highest Priority Road Segments</h2>
+    <table>
+      <tr><th>Road</th><th>Condition</th><th>Traffic</th><th>Score</th></tr>
+      {% for road, score in scored %}
+      <tr><td>{{ road.name }} — {{ road.segment_name }}</td><td>{{ road.condition }}</td><td>{{ road.traffic_level }}</td><td><b>{{ score }}</b></td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="panel">
+    <h2>Recent Work Orders</h2>
+    <table>
+      <tr><th>Title</th><th>Status</th><th>Road</th></tr>
+      {% for w in work_orders %}
+      <tr><td>{{ w.title }}</td><td>{{ w.status }}</td><td>{{ w.road.name }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+{% endblock %}

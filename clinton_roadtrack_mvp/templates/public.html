@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h2>Public Road Transparency Dashboard</h2>
+  <p>This page shows the road inventory, planned work, completed work, and issue intake in plain language.</p>
+</section>
+
+<section class="grid2">
+  <div class="panel">
+    <h2>Planned / In Progress</h2>
+    <table>
+      <tr><th>Work</th><th>Road</th><th>Status</th><th>Planned</th></tr>
+      {% for w in planned %}<tr><td>{{ w.title }}</td><td>{{ w.road.name }}</td><td>{{ w.status }}</td><td>{{ w.planned_date }}</td></tr>{% endfor %}
+    </table>
+  </div>
+  <div class="panel">
+    <h2>Recently Completed</h2>
+    <table>
+      <tr><th>Work</th><th>Road</th><th>Completed</th></tr>
+      {% for w in completed %}<tr><td>{{ w.title }}</td><td>{{ w.road.name }}</td><td>{{ w.completed_date }}</td></tr>{% endfor %}
+    </table>
+  </div>
+</section>
+
+<h2>Road Segment Inventory</h2>
+<table>
+<tr><th>Road</th><th>Segment</th><th>Condition</th><th>Traffic</th><th>Priority Score</th></tr>
+{% for r in roads %}
+<tr><td>{{ r.name }}</td><td>{{ r.segment_name }}</td><td>{{ r.condition }}</td><td>{{ r.traffic_level }}</td><td><b>{{ score_road(r) }}</b></td></tr>
+{% endfor %}
+</table>
+
+<h2>Submit a Road Issue</h2>
+<form method="post" action="{{ url_for('issues') }}" class="form">
+  <label>Road name <input name="road_name" required></label>
+  <label>Location detail <input name="location_detail" placeholder="nearest intersection, mailbox, bridge, etc."></label>
+  <label>Issue type <select name="issue_type"><option>Road condition</option><option>Drainage</option><option>Culvert</option><option>Bridge</option><option>Safety</option><option>Other</option></select></label>
+  <label>Description <textarea name="description" required></textarea></label>
+  <label>Your name <input name="submitter_name"></label>
+  <label>Contact <input name="submitter_contact"></label>
+  <button class="btn">Submit Issue</button>
+</form>
+{% endblock %}
