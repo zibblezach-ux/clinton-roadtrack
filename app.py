@@ -25,7 +25,7 @@ def require_admin(f):
         return f(*args, **kwargs)
     return decorated
 
-# 🔧 ENSURE DATABASE EXISTS (RENDER FIX)
+# 🔧 Ensure DB exists (Render fix)
 @app.before_request
 def create_tables():
     db.create_all()
@@ -125,7 +125,14 @@ def dashboard():
 @app.route("/roads")
 def roads():
     roads = Road.query.all()
-    return render_template("roads.html", roads=roads, score_road=score_road)
+    is_admin = request.args.get("key") == ADMIN_KEY
+
+    return render_template(
+        "roads.html",
+        roads=roads,
+        score_road=score_road,
+        is_admin=is_admin
+    )
 
 @app.route("/roads/new", methods=["GET", "POST"])
 @require_admin
@@ -172,7 +179,13 @@ def road_edit(road_id):
 @app.route("/work-orders")
 def work_orders():
     work_orders = WorkOrder.query.all()
-    return render_template("work_orders.html", work_orders=work_orders)
+    is_admin = request.args.get("key") == ADMIN_KEY
+
+    return render_template(
+        "work_orders.html",
+        work_orders=work_orders,
+        is_admin=is_admin
+    )
 
 @app.route("/work-orders/new", methods=["GET", "POST"])
 @require_admin
@@ -220,7 +233,7 @@ def work_order_edit(wo_id):
     return render_template("work_order_form.html", roads=roads, wo=w)
 
 # =========================
-# PUBLIC VIEW
+# PUBLIC
 # =========================
 
 @app.route("/public")
@@ -249,12 +262,6 @@ def export_csv(kind):
     if kind == "roads":
         writer.writerow(["name", "segment", "condition", "traffic", "score"])
         for r in Road.query.all():
-            writer.writerow([
-                r.name,
-                r.segment_name,
-                r.condition,
-                r.traffic_level,
-                score_road(r)
-            ])
+            writer.writerow([r.name, r.segment_name, r.condition, r.traffic_level, score_road(r)])
 
     return Response(output.getvalue(), mimetype="text/csv")
