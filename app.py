@@ -72,7 +72,25 @@ def dashboard():
         "poor": len([r for r in roads if r.condition == "Poor"])
     }
 
-    return render_template("dashboard.html", counts=counts)
+    # Highest priority road (simple rule: Poor > Fair > Good)
+    priority_map = {"Poor": 3, "Fair": 2, "Good": 1}
+    highest_priority_road = None
+    if roads:
+        highest_priority_road = sorted(
+            roads,
+            key=lambda r: priority_map.get(r.condition or "", 0),
+            reverse=True
+        )[0]
+
+    # Recent work orders (last 5 entered)
+    recent_work_orders = WorkOrder.query.order_by(WorkOrder.id.desc()).limit(5).all()
+
+    return render_template(
+        "dashboard.html",
+        counts=counts,
+        highest_priority_road=highest_priority_road,
+        recent_work_orders=recent_work_orders
+    )
 
 # =========================
 # ROADS
