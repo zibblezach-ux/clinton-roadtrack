@@ -1,17 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="toolbar">
   <h2>Work Orders</h2>
-  <a class="btn" href="{{ url_for('work_order_new') }}">Add Work Order</a>
   <a class="btn secondary" href="{{ url_for('export_csv', kind='work_orders') }}">Export CSV</a>
 </div>
+
 <table>
-<tr><th>Title</th><th>Road</th><th>Type</th><th>Status</th><th>Priority</th><th>Planned</th><th>Completed</th><th>Cost</th><th></th></tr>
+<tr>
+  <th>Title</th>
+  <th>Road</th>
+  <th>Type</th>
+  <th>Status</th>
+  <th>Priority</th>
+  <th>Planned</th>
+  <th>Completed</th>
+  <th>Cost</th>
+  <th></th>
+</tr>
+
 {% for w in work_orders %}
 <tr>
-<td>{{ w.title }}</td><td>{{ w.road.name }} — {{ w.road.segment_name }}</td><td>{{ w.work_type }}</td><td>{{ w.status }}</td><td>{{ w.priority }}</td><td>{{ w.planned_date }}</td><td>{{ w.completed_date }}</td><td>${{ "%.2f"|format(w.actual_cost or w.estimated_cost or 0) }}</td>
-<td><a href="{{ url_for('work_order_edit', wo_id=w.id) }}">Edit</a></td>
+  <td>{{ w.title }}</td>
+  <td>{{ w.road.name }} — {{ w.road.segment_name }}</td>
+  <td>{{ w.work_type }}</td>
+  <td>{{ w.status }}</td>
+  <td>{{ w.priority }}</td>
+  <td>{{ w.planned_date }}</td>
+  <td>{{ w.completed_date }}</td>
+  <td>${{ "%.2f"|format(w.actual_cost or w.estimated_cost or 0) }}</td>
+  <td></td>
 </tr>
 {% endfor %}
+
 </table>
+
 {% endblock %}
