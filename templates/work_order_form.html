@@ -1,28 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>{{ "Edit" if wo else "Add" }} Work Order</h2>
-<form method="post" class="form">
-  <label>Road segment <select name="road_id">
-    {% for r in roads %}<option value="{{ r.id }}" {% if wo and wo.road_id==r.id %}selected{% endif %}>{{ r.name }} — {{ r.segment_name }}</option>{% endfor %}
-  </select></label>
-  <label>Title <input name="title" required value="{{ wo.title if wo else '' }}"></label>
-  <label>Work type <select name="work_type">
-    {% for x in ["Grading","Rock/Gravel","Culvert","Ditching","Pothole patch","Inspection","Bridge","Snow/Ice","Other"] %}<option {% if wo and wo.work_type==x %}selected{% endif %}>{{x}}</option>{% endfor %}
-  </select></label>
-  <label>Status <select name="status">
-    {% for x in ["Planned","In Progress","Completed","Deferred"] %}<option {% if wo and wo.status==x %}selected{% endif %}>{{x}}</option>{% endfor %}
-  </select></label>
-  <label>Priority <select name="priority">
-    {% for x in ["High","Medium","Low"] %}<option {% if wo and wo.priority==x %}selected{% endif %}>{{x}}</option>{% endfor %}
-  </select></label>
-  <label>Requested by <input name="requested_by" value="{{ wo.requested_by if wo else '' }}"></label>
-  <label>Planned date <input type="date" name="planned_date" value="{{ wo.planned_date if wo else '' }}"></label>
-  <label>Completed date <input type="date" name="completed_date" value="{{ wo.completed_date if wo else '' }}"></label>
-  <label>Crew <input name="crew" value="{{ wo.crew if wo else '' }}"></label>
-  <label>Materials <input name="materials" value="{{ wo.materials if wo else '' }}"></label>
-  <label>Estimated cost <input type="number" step="0.01" name="estimated_cost" value="{{ wo.estimated_cost if wo else 0 }}"></label>
-  <label>Actual cost <input type="number" step="0.01" name="actual_cost" value="{{ wo.actual_cost if wo else 0 }}"></label>
-  <label>Notes <textarea name="notes">{{ wo.notes if wo else '' }}</textarea></label>
-  <button class="btn">Save</button>
+
+<h2>{% if wo %}Edit{% else %}Add{% endif %} Work Order</h2>
+
+<form method="post">
+
+  <label>Title</label><br>
+  <input type="text" name="title" value="{{ wo.title if wo else '' }}" required><br><br>
+
+  <label>Road</label><br>
+  <select name="road_id" required>
+    {% for r in roads %}
+      <option value="{{ r.id }}"
+        {% if wo and wo.road_id == r.id %}selected{% endif %}>
+        {{ r.name }} — {{ r.segment_name }}
+      </option>
+    {% endfor %}
+  </select><br><br>
+
+  <label>Status</label><br>
+  <select name="status">
+    <option {% if wo and wo.status=='Planned' %}selected{% endif %}>Planned</option>
+    <option {% if wo and wo.status=='In Progress' %}selected{% endif %}>In Progress</option>
+    <option {% if wo and wo.status=='Completed' %}selected{% endif %}>Completed</option>
+  </select><br><br>
+
+  <label>Planned Date</label><br>
+  <input type="text" name="planned_date" value="{{ wo.planned_date if wo else '' }}"><br><br>
+
+  <label>Completed Date</label><br>
+  <input type="text" name="completed_date" value="{{ wo.completed_date if wo else '' }}"><br><br>
+
+  <button type="submit">Save</button>
+
 </form>
+
 {% endblock %}
