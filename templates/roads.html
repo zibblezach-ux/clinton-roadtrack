@@ -34,15 +34,13 @@
   <td>{{ r.importance }}</td>
   <td>{{ r.condition }}</td>
   <td>{{ r.traffic_level }}</td>
-
   <td>
     {% if is_admin %}
-    <a href="/roads/{{r.id}}/edit?key=clinton-2026-secure">Edit</a>
+    <a href="/roads/{{ r.id }}/edit?key=clinton-2026-secure">Edit</a>
     {% endif %}
   </td>
 </tr>
 {% endfor %}
-
 </table>
 
 {% endblock %}
