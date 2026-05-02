@@ -12,7 +12,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-# 🔒 ADMIN KEY
 ADMIN_KEY = "clinton-2026-secure"
 
 def require_admin(f):
@@ -23,7 +22,6 @@ def require_admin(f):
         return f(*args, **kwargs)
     return decorated
 
-# Ensure tables exist (Render fix)
 @app.before_request
 def create_tables():
     db.create_all()
@@ -36,11 +34,8 @@ class Road(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(140))
     segment_name = db.Column(db.String(140))
-    surface_type = db.Column(db.String(60))
-    length_miles = db.Column(db.Float)
-    traffic_level = db.Column(db.String(20))
-    importance = db.Column(db.String(120))
     condition = db.Column(db.String(20))
+    traffic_level = db.Column(db.String(20))
 
 class WorkOrder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,37 +46,23 @@ class WorkOrder(db.Model):
     planned_date = db.Column(db.String(20))
     completed_date = db.Column(db.String(20))
 
-class CitizenIssue(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    road_name = db.Column(db.String(140))
-    description = db.Column(db.Text)
-    status = db.Column(db.String(30))
-
 # =========================
-# DASHBOARD (FIXED)
+# DASHBOARD
 # =========================
 
 @app.route("/")
 def dashboard():
     roads = Road.query.all()
     work_orders = WorkOrder.query.all()
-    issues = CitizenIssue.query.all()
 
     counts = {
         "roads": len(roads),
         "planned": len([w for w in work_orders if w.status == "Planned"]),
         "completed": len([w for w in work_orders if w.status == "Completed"]),
-        "issues": len(issues),
         "poor": len([r for r in roads if r.condition == "Poor"])
     }
 
-    return render_template(
-        "dashboard.html",
-        counts=counts,
-        work_orders=work_orders,
-        issues=issues,
-        roads=roads
-    )
+    return render_template("dashboard.html", counts=counts)
 
 # =========================
 # ROADS
@@ -89,9 +70,38 @@ def dashboard():
 
 @app.route("/roads")
 def roads():
-    roads = Road.query.all()
-    is_admin = request.args.get("key") == ADMIN_KEY
-    return render_template("roads.html", roads=roads, is_admin=is_admin)
+    return render_template(
+        "roads.html",
+        roads=Road.query.all(),
+        is_admin=request.args.get("key") == ADMIN_KEY
+    )
+
+@app.route("/roads/new", methods=["GET","POST"])
+@require_admin
+def road_new():
+    if request.method == "POST":
+        db.session.add(Road(
+            name=request.form["name"],
+            segment_name=request.form["segment_name"],
+            condition=request.form["condition"],
+            traffic_level=request.form["traffic_level"]
+        ))
+        db.session.commit()
+        return redirect(url_for("roads") + "?key=" + ADMIN_KEY)
+    return render_template("road_form.html")
+
+@app.route("/roads/<int:id>/edit", methods=["GET","POST"])
+@require_admin
+def road_edit(id):
+    r = Road.query.get_or_404(id)
+    if request.method == "POST":
+        r.name = request.form["name"]
+        r.segment_name = request.form["segment_name"]
+        r.condition = request.form["condition"]
+        r.traffic_level = request.form["traffic_level"]
+        db.session.commit()
+        return redirect(url_for("roads") + "?key=" + ADMIN_KEY)
+    return render_template("road_form.html", road=r)
 
 # =========================
 # WORK ORDERS
@@ -99,17 +109,40 @@ def roads():
 
 @app.route("/work-orders")
 def work_orders():
-    work_orders = WorkOrder.query.all()
-    is_admin = request.args.get("key") == ADMIN_KEY
-    return render_template("work_orders.html", work_orders=work_orders, is_admin=is_admin)
+    return render_template(
+        "work_orders.html",
+        work_orders=WorkOrder.query.all(),
+        is_admin=request.args.get("key") == ADMIN_KEY
+    )
 
-# =========================
-# PUBLIC
-# =========================
+@app.route("/work-orders/new", methods=["GET","POST"])
+@require_admin
+def work_order_new():
+    if request.method == "POST":
+        road = Road.query.get(request.form["road_id"])
+        db.session.add(WorkOrder(
+            title=request.form["title"],
+            road=road,
+            status=request.form["status"],
+            planned_date=request.form["planned_date"],
+            completed_date=request.form["completed_date"]
+        ))
+        db.session.commit()
+        return redirect(url_for("work_orders") + "?key=" + ADMIN_KEY)
+    return render_template("work_order_form.html", roads=Road.query.all())
 
-@app.route("/public")
-def public():
-    return render_template("public.html")
+@app.route("/work-orders/<int:id>/edit", methods=["GET","POST"])
+@require_admin
+def work_order_edit(id):
+    w = WorkOrder.query.get_or_404(id)
+    if request.method == "POST":
+        w.title = request.form["title"]
+        w.status = request.form["status"]
+        w.planned_date = request.form["planned_date"]
+        w.completed_date = request.form["completed_date"]
+        db.session.commit()
+        return redirect(url_for("work_orders") + "?key=" + ADMIN_KEY)
+    return render_template("work_order_form.html", wo=w, roads=Road.query.all())
 
 # =========================
 # EXPORT
@@ -130,26 +163,22 @@ def export_all():
     for w in WorkOrder.query.all():
         writer.writerow([w.title, w.road.name if w.road else "", w.status, w.planned_date, w.completed_date])
 
-    writer.writerow([])
-    writer.writerow(["ISSUES"])
-    for i in CitizenIssue.query.all():
-        writer.writerow([i.road_name, i.description, i.status])
-
     return Response(output.getvalue(), mimetype="text/csv")
 
 # =========================
-# IMPORT
+# IMPORT (OVERWRITES DATA)
 # =========================
 
 @app.route("/import", methods=["POST"])
 @require_admin
 def import_data():
-    if "file" not in request.files:
-        return "No file uploaded", 400
-
     file = request.files["file"]
-    stream = TextIOWrapper(file.stream, encoding="utf-8")
-    reader = csv.reader(stream)
+    reader = csv.reader(TextIOWrapper(file.stream, encoding="utf-8"))
+
+    # 🔥 CLEAR EXISTING DATA
+    WorkOrder.query.delete()
+    Road.query.delete()
+    db.session.commit()
 
     mode = None
 
@@ -158,44 +187,30 @@ def import_data():
             continue
 
         if row[0] == "ROADS":
-            mode = "roads"
+            mode = "r"
             continue
         elif row[0] == "WORK_ORDERS":
-            mode = "work"
-            continue
-        elif row[0] == "ISSUES":
-            mode = "issues"
+            mode = "w"
             continue
 
-        try:
-            if mode == "roads" and len(row) >= 4:
-                db.session.add(Road(
-                    name=row[0],
-                    segment_name=row[1],
-                    condition=row[2],
-                    traffic_level=row[3]
-                ))
+        if mode == "r" and len(row) >= 4:
+            db.session.add(Road(
+                name=row[0],
+                segment_name=row[1],
+                condition=row[2],
+                traffic_level=row[3]
+            ))
 
-            elif mode == "work" and len(row) >= 5:
-                road = Road.query.filter_by(name=row[1]).first()
-                db.session.add(WorkOrder(
-                    title=row[0],
-                    road=road,
-                    status=row[2],
-                    planned_date=row[3],
-                    completed_date=row[4]
-                ))
-
-            elif mode == "issues" and len(row) >= 3:
-                db.session.add(CitizenIssue(
-                    road_name=row[0],
-                    description=row[1],
-                    status=row[2]
-                ))
-
-        except:
-            continue
+        elif mode == "w" and len(row) >= 5:
+            road = Road.query.filter_by(name=row[1]).first()
+            db.session.add(WorkOrder(
+                title=row[0],
+                road=road,
+                status=row[2],
+                planned_date=row[3],
+                completed_date=row[4]
+            ))
 
     db.session.commit()
 
-    return redirect(url_for("roads") + f"?key={ADMIN_KEY}")
+    return redirect(url_for("roads") + "?key=" + ADMIN_KEY)
